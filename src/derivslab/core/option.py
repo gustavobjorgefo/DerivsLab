@@ -1,5 +1,5 @@
-# option.py
-# 
+# src/derivslab/core/option.py
+
 # VanillaOption, ExoticOption (barrier, asian, etc.)
 
 from datetime import date, datetime
@@ -72,7 +72,7 @@ from datetime import date
 from typing import Literal
 
 class BarrierOption(VanillaOption):
-    
+
     def __init__(
         self,
         option_type: str,
