@@ -1,13 +1,14 @@
 # src/derivslab/pricing/pricing_models.py
 
 import math
-from dataclasses import dataclass
+import numpy as np
+
 from typing import Literal
-
 from scipy.stats import norm
+from dataclasses import dataclass
 
 
-@dataclass
+
 class BlackModel:
     """
     Black model (1976), used for pricing options on futures or forward contracts.
@@ -25,28 +26,29 @@ class BlackModel:
     discount_factor : Discount factor (DF = e^(-rT))
     """
 
-    option_type: Literal["call", "put"]
-    forward: float
-    strike: float
-    maturity: float
-    volatility: float
-    discount_factor: float
-
-    def price(self) -> float:
+    @staticmethod
+    def price(
+        option_type: Literal["call", "put"],
+        forward: float,
+        strike: float,
+        maturity: float,
+        volatility: float,
+        discount_factor: float
+    ) -> float:
         """
         Compute the option price using Black's model formula.
         """
 
-        d1 = (math.log(self.forward / self.strike) + 0.5 * self.volatility**2 * self.maturity) / (
-            self.volatility * math.sqrt(self.maturity)
+        d1 = (math.log(forward / strike) + 0.5 * volatility**2 * maturity) / (
+            volatility * math.sqrt(maturity)
         )
-        d2 = d1 - self.volatility * math.sqrt(self.maturity)
+        d2 = d1 - volatility * math.sqrt(maturity)
 
-        if self.option_type == "call":
-            return self.discount_factor * (self.forward * norm.cdf(d1) - self.strike * norm.cdf(d2))
+        if option_type == "call":
+            return discount_factor * (forward * norm.cdf(d1) - strike * norm.cdf(d2))
         
-        elif self.option_type == "put":
-            return self.discount_factor * (self.strike * norm.cdf(-d2) - self.forward * norm.cdf(-d1))
+        elif option_type == "put":
+            return discount_factor * (strike * norm.cdf(-d2) - forward * norm.cdf(-d1))
         
         else:
             raise ValueError("Invalid option_type. Use 'call' or 'put'.")

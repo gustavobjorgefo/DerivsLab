@@ -2,9 +2,9 @@
 
 # VanillaOption, ExoticOption (barrier, asian, etc.)
 
+from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Union, Literal
-
 
 class VanillaOption:
 
@@ -67,6 +67,32 @@ class VanillaOption:
             f")"
         )
 
+    def payoff(self, spot_price: float) -> float:
+        """
+        Payoff at maturity.
+        """
+        if self.option_type == 'call':
+            return max(spot_price - self.strike_price, 0)
+        else:
+            return max(self.strike_price - spot_price, 0)
+        
+    def price(self, model, **kwargs) -> float:
+        """
+        Price the option using a given pricing model.
+        
+        Example:
+        --------
+        model = BlackModel()
+        option.price(model, forward=100, maturity=0.5, volatility=0.2, discount_factor=0.99)
+        """
+        if not hasattr(model, "price"):
+            raise TypeError("Model must implement a 'price' method.")
+        
+        return model.price(
+            option_type=self.option_type,
+            strike=self.strike_price,
+            **kwargs
+        )
 
 from datetime import date
 from typing import Literal

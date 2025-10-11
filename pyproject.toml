@@ -9,6 +9,6 @@ description = "DerivsLab — option pricing, volatility and greeks research"
 readme = "README.md"
 requires-python = ">=3.8"
 authors = [
-  {name="Seu Nome", email="you@example.com"}
+  {name="Jorge Filho Gustavo", email="gustavob.jorge@hotmail.com"}
 ]
 license = {text = "MIT"}
