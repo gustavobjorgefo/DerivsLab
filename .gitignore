@@ -27,3 +27,8 @@ Thumbs.db
 # Generated / local artifacts
 project_tree.txt
 src/derivslab/utils/cache/
+
+# Reference material (local only, not part of DerivsLab itself)
+references/vba/*.xlsm
+references/repos/*
+!references/repos/README.md
