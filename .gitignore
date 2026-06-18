@@ -23,3 +23,7 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Generated / local artifacts
+project_tree.txt
+src/derivslab/utils/cache/

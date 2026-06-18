@@ -54,7 +54,6 @@ class BlackModel:
             raise ValueError("Invalid option_type. Use 'call' or 'put'.")
         
 
-@dataclass
 class BlackScholesModel:
     """
     Black-Scholes model (1973), for European options on non-dividend-paying stocks.

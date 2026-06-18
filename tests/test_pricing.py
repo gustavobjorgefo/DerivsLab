@@ -40,9 +40,12 @@ if __name__ == '__main__':
     forward = spot_price * math.exp(risk_free_rate * maturity)
     discount_factor = math.exp(-risk_free_rate * maturity)
 
-    black_model = BlackModel()
+    engine = BlackModel()
+
+    option_call.set_pricing_engine(engine)
+    option_put.set_pricing_engine(engine)
     
-    print(f'Call price: {black_model.price(
+    print(f'Call price: {engine.price(
         option_type="call",
         forward=forward,
         strike=strike_price,
@@ -51,7 +54,7 @@ if __name__ == '__main__':
         discount_factor=discount_factor
     )}')
 
-    print(f'Put price: {black_model.price(
+    print(f'Put price: {engine.price(
         option_type="put",
         forward=forward,
         strike=strike_price,
@@ -61,7 +64,6 @@ if __name__ == '__main__':
     )}')
 
     call_price = option_call.price(
-        model=black_model,
         forward=forward,
         maturity=maturity,
         volatility=volatility,
@@ -69,7 +71,6 @@ if __name__ == '__main__':
     )
 
     put_price = option_put.price(
-        model=black_model,
         forward=forward,
         maturity=maturity,
         volatility=volatility,

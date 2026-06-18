@@ -4,3 +4,6 @@ scipy        # estatística, otimização e funções especiais
 matplotlib   # gráficos básicos
 statsmodels  # econometria, regressões avançadas
 sympy        # matemática simbólica
+yfinance
+pickle
+pathlib
