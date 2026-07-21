@@ -1,9 +1,8 @@
 numpy
 pandas
-scipy        # estatística, otimização e funções especiais
-matplotlib   # gráficos básicos
-statsmodels  # econometria, regressões avançadas
-sympy        # matemática simbólica
+pyarrow      # Parquet engine used by pandas in calendar_loader/calendar_ingest
+scipy        # statistics, optimization, and special functions
+matplotlib   # basic plotting
+statsmodels  # econometrics and advanced regressions
+sympy        # symbolic mathematics
 yfinance
-pickle
-pathlib
