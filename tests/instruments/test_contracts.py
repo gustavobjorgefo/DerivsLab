@@ -1,0 +1,104 @@
+"""Tests for derivslab.instruments.contracts."""
+
+from __future__ import annotations
+
+from dataclasses import FrozenInstanceError
+from typing import Callable
+
+import pytest
+
+from derivslab.instruments.contracts import (
+    PERPETUAL_EXPIRY,
+    Currency,
+    DayCountConvention,
+    EquityContract,
+    VanillaOptionContract,
+)
+
+
+class TestInstrumentContractDefaults:
+    """Tests for the base InstrumentContract's default values."""
+
+    def test_defaults_are_brazilian_market_standard(self, equity_contract: EquityContract) -> None:
+        assert equity_contract.contract_size == 100
+        assert equity_contract.tick_size == 0.01
+        assert equity_contract.day_count_convention is DayCountConvention.BUS_252
+
+    def test_isin_and_cfi_code_default_to_none(self, equity_contract: EquityContract) -> None:
+        assert equity_contract.isin is None
+        assert equity_contract.cfi_code is None
+
+    def test_isin_and_cfi_code_can_be_set(self) -> None:
+        contract = EquityContract(
+            instrument_id="PETR4",
+            currency=Currency.BRL,
+            ticker="PETR4",
+            isin="BRPETRACNOR9",
+            cfi_code="ESVUFR",
+        )
+        assert contract.isin == "BRPETRACNOR9"
+        assert contract.cfi_code == "ESVUFR"
+
+    @pytest.mark.parametrize("contract_size", [0, -1, -100])
+    def test_non_positive_contract_size_raises(self, contract_size: int) -> None:
+        with pytest.raises(ValueError, match="contract_size must be strictly positive"):
+            EquityContract(
+                instrument_id="PETR4",
+                currency=Currency.BRL,
+                ticker="PETR4",
+                contract_size=contract_size,
+            )
+
+    @pytest.mark.parametrize("tick_size", [0, -0.01])
+    def test_non_positive_tick_size_raises(self, tick_size: float) -> None:
+        with pytest.raises(ValueError, match="tick_size must be strictly positive"):
+            EquityContract(
+                instrument_id="PETR4",
+                currency=Currency.BRL,
+                ticker="PETR4",
+                tick_size=tick_size,
+            )
+
+    def test_contracts_are_frozen(self, equity_contract: EquityContract) -> None:
+        with pytest.raises(FrozenInstanceError):
+            equity_contract.ticker = "VALE3"  # type: ignore[misc]
+
+
+class TestEquityContract:
+    """Tests specific to EquityContract."""
+
+    def test_expiry_defaults_to_perpetual(self, equity_contract: EquityContract) -> None:
+        assert equity_contract.expiry == PERPETUAL_EXPIRY
+
+    def test_perpetual_expiry_is_far_future(self) -> None:
+        assert PERPETUAL_EXPIRY.year == 9999
+
+
+class TestVanillaOptionContract:
+    """Tests specific to VanillaOptionContract."""
+
+    def test_valid_contract_holds_given_fields(
+        self, make_option_contract: Callable[..., VanillaOptionContract]
+    ) -> None:
+        contract = make_option_contract(strike=42.0)
+        assert contract.strike == 42.0
+        assert contract.underlying == "PETR4"
+
+    @pytest.mark.parametrize("strike", [0.0, -1.0, -100.0])
+    def test_non_positive_strike_raises(
+        self, make_option_contract: Callable[..., VanillaOptionContract], strike: float
+    ) -> None:
+        with pytest.raises(ValueError, match="strike must be strictly positive"):
+            make_option_contract(strike=strike)
+
+    def test_inherits_base_contract_size_validation(
+        self, make_option_contract: Callable[..., VanillaOptionContract]
+    ) -> None:
+        with pytest.raises(ValueError, match="contract_size must be strictly positive"):
+            make_option_contract(contract_size=0)
+
+    def test_underlying_is_a_plain_ticker_string(
+        self, make_option_contract: Callable[..., VanillaOptionContract]
+    ) -> None:
+        contract = make_option_contract()
+        assert isinstance(contract.underlying, str)
