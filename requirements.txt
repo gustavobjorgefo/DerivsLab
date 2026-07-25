@@ -6,3 +6,4 @@ matplotlib   # basic plotting
 statsmodels  # econometrics and advanced regressions
 sympy        # symbolic mathematics
 yfinance
+xlwings      # Excel COM interface used by ProfitProRTDProvider

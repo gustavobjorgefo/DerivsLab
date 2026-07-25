@@ -24,6 +24,7 @@ from derivslab.instruments.contracts import (
     VanillaOptionContract,
 )
 from derivslab.instruments.equity import EquityInstrument
+from derivslab.instruments.registry import InstrumentRegistry
 from derivslab.instruments.vanilla import VanillaOption
 
 __all__ = [
@@ -36,6 +37,7 @@ __all__ = [
     "ExerciseStyle",
     "Instrument",
     "InstrumentContract",
+    "InstrumentRegistry",
     "OptionType",
     "PERPETUAL_EXPIRY",
     "UnderlyingAssetClass",
