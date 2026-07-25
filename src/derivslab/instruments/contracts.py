@@ -94,6 +94,63 @@ class DayCountConvention(str, Enum):
     ACT_365 = "act/365"
 
 
+class Exchange(str, Enum):
+    """Venue where an instrument is listed or cleared.
+
+    Provider-agnostic — this is the exchange itself, not a data vendor's
+    internal naming (e.g. ProfitPro's RTD suffixes). ``None`` on a
+    contract means the instrument is not tied to a real venue, which is
+    expected for research-only or synthetic instruments.
+
+    Attributes
+    ----------
+    B3 : Brazilian exchange (Brasil, Bolsa, Balcão).
+    """
+
+    B3 = "b3"
+
+
+class ExchangeSegment(str, Enum):
+    """Trading segment within an exchange.
+
+    A segment is orthogonal to product type: it reflects venue-level
+    conventions such as clearing, margining, and settlement calendars,
+    not the instrument's payoff structure. Two contracts of the same
+    ``VanillaOptionContract`` class can sit in different segments
+    depending on their underlying (e.g. an equity option vs. an option
+    on a rate future).
+
+    Attributes
+    ----------
+    BOVESPA : Equities and equity derivatives segment (``_B_0`` in
+        ProfitPro's RTD naming).
+    BMF : Futures, FX, rates, and commodities segment (``_F_0`` in
+        ProfitPro's RTD naming).
+    """
+
+    BOVESPA = "bovespa"
+    BMF = "bmf"
+
+
+class UnderlyingAssetClass(str, Enum):
+    """Nature of the asset a derivative contract is written on.
+
+    Determines which pricing model applies to a given exercise style —
+    the payoff formula is identical across asset classes, but the
+    dynamics of the underlying (spot vs. forward) are not: an equity
+    option is priced off spot with a carry term, a future option is
+    priced off the forward itself.
+
+    Attributes
+    ----------
+    EQUITY : Underlying trades at spot.
+    FUTURE : Underlying is a futures contract, priced by cost of carry.
+    """
+
+    EQUITY = "equity"
+    FUTURE = "future"
+
+
 @dataclass(frozen=True, kw_only=True)
 class InstrumentContract:
     """Common reference data shared by every tradable instrument.
@@ -119,11 +176,18 @@ class InstrumentContract:
         instrument has one. Derivatives typically do not.
     cfi_code : str | None
         Classification of Financial Instruments code, when registered.
+    exchange : Exchange | None
+        Venue where the instrument is listed or cleared. ``None`` for
+        research-only or synthetic instruments with no real venue.
+    exchange_segment : ExchangeSegment | None
+        Trading segment within ``exchange``. ``None`` when ``exchange``
+        is ``None``; requires ``exchange`` to be set otherwise.
 
     Raises
     ------
     ValueError
-        If ``contract_size`` or ``tick_size`` is not strictly positive.
+        If ``contract_size`` or ``tick_size`` is not strictly positive,
+        or if ``exchange_segment`` is set without ``exchange``.
     """
 
     instrument_id: str
@@ -133,6 +197,8 @@ class InstrumentContract:
     day_count_convention: DayCountConvention = DayCountConvention.BUS_252
     isin: str | None = None
     cfi_code: str | None = None
+    exchange: Exchange | None = None
+    exchange_segment: ExchangeSegment | None = None
 
     def __post_init__(self) -> None:
         if self.contract_size <= 0:
@@ -144,6 +210,10 @@ class InstrumentContract:
             raise ValueError(
                 f"tick_size must be strictly positive, got {self.tick_size} "
                 f"for {self.instrument_id}."
+            )
+        if self.exchange_segment is not None and self.exchange is None:
+            raise ValueError(
+                f"exchange_segment set without exchange for {self.instrument_id}."
             )
 
 
@@ -185,12 +255,24 @@ class VanillaOptionContract(InstrumentContract):
     Multi-name payoffs (basket options) belong to a separate contract
     class with ``underlyings: list[str]``, not to this one.
 
+    ``underlying_asset_class`` is kept alongside ``underlying`` for the
+    same reason: resolving it would otherwise require materializing the
+    underlying's own ``Instrument``, which reintroduces the nested-object
+    problem ``underlying`` was designed to avoid. It is required, not
+    optional, because the payoff is style-agnostic but the pricing
+    dynamics are not — an equity option is priced off spot, a future
+    option off the forward — so ``VanillaOption.pricing_model_key``
+    resolves from ``(style, underlying_asset_class)`` together.
+
     Parameters
     ----------
     ticker : str
         Exchange ticker of the option contract (e.g. "PETRA123").
     underlying : str
-        Ticker of the underlying equity.
+        Ticker of the underlying instrument.
+    underlying_asset_class : UnderlyingAssetClass
+        Nature of the underlying (equity, future, ...), determining
+        which pricing model applies alongside ``style``.
     option_type : OptionType
         Call or put.
     style : ExerciseStyle
@@ -208,6 +290,7 @@ class VanillaOptionContract(InstrumentContract):
 
     ticker: str
     underlying: str
+    underlying_asset_class: UnderlyingAssetClass
     option_type: OptionType
     style: ExerciseStyle
     strike: float

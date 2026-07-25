@@ -8,7 +8,13 @@ from typing import Callable
 import pytest
 
 from derivslab.calendars import TradingCalendar
-from derivslab.instruments.contracts import DayCountConvention, OptionType, VanillaOptionContract
+from derivslab.instruments.contracts import (
+    DayCountConvention,
+    ExerciseStyle,
+    OptionType,
+    UnderlyingAssetClass,
+    VanillaOptionContract,
+)
 from derivslab.instruments.vanilla import VanillaOption
 
 
@@ -28,10 +34,53 @@ class TestIdentity:
     def test_european_style_routes_to_closed_form_pricer(
         self, european_call: VanillaOption
     ) -> None:
-        assert european_call.pricing_model_key == "bs_vanilla_european"
+        assert european_call.pricing_model_key == "bs_vanilla_european_equity"
 
     def test_american_style_routes_to_numerical_pricer(self, american_put: VanillaOption) -> None:
-        assert american_put.pricing_model_key == "binomial_vanilla_american"
+        assert american_put.pricing_model_key == "binomial_vanilla_american_equity"
+
+
+class TestPricingModelKeyResolution:
+    """Tests for pricing_model_key resolving from (style, underlying_asset_class).
+
+    Style alone is not enough to pick a pricer: an equity option is priced
+    off spot with a carry term, while a future option is priced off the
+    forward itself, even under the same exercise style.
+    """
+
+    @pytest.mark.parametrize(
+        ("style", "underlying_asset_class", "expected_key"),
+        [
+            (ExerciseStyle.EUROPEAN, UnderlyingAssetClass.EQUITY, "bs_vanilla_european_equity"),
+            (
+                ExerciseStyle.EUROPEAN,
+                UnderlyingAssetClass.FUTURE,
+                "black76_vanilla_european_future",
+            ),
+            (
+                ExerciseStyle.AMERICAN,
+                UnderlyingAssetClass.EQUITY,
+                "binomial_vanilla_american_equity",
+            ),
+            (
+                ExerciseStyle.AMERICAN,
+                UnderlyingAssetClass.FUTURE,
+                "binomial_vanilla_american_future",
+            ),
+        ],
+    )
+    def test_pricing_model_key_resolves_from_style_and_asset_class(
+        self,
+        make_option_contract: Callable[..., VanillaOptionContract],
+        style: ExerciseStyle,
+        underlying_asset_class: UnderlyingAssetClass,
+        expected_key: str,
+    ) -> None:
+        contract = make_option_contract(
+            style=style, underlying_asset_class=underlying_asset_class
+        )
+        option = VanillaOption(contract)
+        assert option.pricing_model_key == expected_key
 
 
 class TestPayoff:

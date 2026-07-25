@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import FrozenInstanceError
+from datetime import date
 from typing import Callable
 
 import pytest
@@ -12,6 +13,11 @@ from derivslab.instruments.contracts import (
     Currency,
     DayCountConvention,
     EquityContract,
+    Exchange,
+    ExchangeSegment,
+    ExerciseStyle,
+    OptionType,
+    UnderlyingAssetClass,
     VanillaOptionContract,
 )
 
@@ -38,6 +44,42 @@ class TestInstrumentContractDefaults:
         )
         assert contract.isin == "BRPETRACNOR9"
         assert contract.cfi_code == "ESVUFR"
+
+    def test_exchange_and_exchange_segment_default_to_none(
+        self, equity_contract: EquityContract
+    ) -> None:
+        assert equity_contract.exchange is None
+        assert equity_contract.exchange_segment is None
+
+    def test_exchange_and_exchange_segment_can_be_set_together(self) -> None:
+        contract = EquityContract(
+            instrument_id="PETR4",
+            currency=Currency.BRL,
+            ticker="PETR4",
+            exchange=Exchange.B3,
+            exchange_segment=ExchangeSegment.BOVESPA,
+        )
+        assert contract.exchange is Exchange.B3
+        assert contract.exchange_segment is ExchangeSegment.BOVESPA
+
+    def test_exchange_can_be_set_without_a_segment(self) -> None:
+        contract = EquityContract(
+            instrument_id="PETR4",
+            currency=Currency.BRL,
+            ticker="PETR4",
+            exchange=Exchange.B3,
+        )
+        assert contract.exchange is Exchange.B3
+        assert contract.exchange_segment is None
+
+    def test_exchange_segment_without_exchange_raises(self) -> None:
+        with pytest.raises(ValueError, match="exchange_segment set without exchange"):
+            EquityContract(
+                instrument_id="PETR4",
+                currency=Currency.BRL,
+                ticker="PETR4",
+                exchange_segment=ExchangeSegment.BOVESPA,
+            )
 
     @pytest.mark.parametrize("contract_size", [0, -1, -100])
     def test_non_positive_contract_size_raises(self, contract_size: int) -> None:
@@ -102,3 +144,25 @@ class TestVanillaOptionContract:
     ) -> None:
         contract = make_option_contract()
         assert isinstance(contract.underlying, str)
+
+    def test_underlying_asset_class_is_required(self) -> None:
+        with pytest.raises(TypeError):
+            VanillaOptionContract(
+                instrument_id="PETRA123",
+                currency=Currency.BRL,
+                ticker="PETRA123",
+                underlying="PETR4",
+                option_type=OptionType.CALL,
+                style=ExerciseStyle.EUROPEAN,
+                strike=35.0,
+                expiry=date(2026, 12, 18),
+            )  # type: ignore[call-arg]
+
+    def test_underlying_asset_class_can_be_future(
+        self, make_option_contract: Callable[..., VanillaOptionContract]
+    ) -> None:
+        contract = make_option_contract(
+            underlying="WINQ25",
+            underlying_asset_class=UnderlyingAssetClass.FUTURE,
+        )
+        assert contract.underlying_asset_class is UnderlyingAssetClass.FUTURE

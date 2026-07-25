@@ -1,12 +1,14 @@
 """Vanilla (call/put) option instrument.
 
 European and American vanillas share this single class because their
-payoff formula is identical — only the exercise timing differs, and that
-distinction is fully captured by ``VanillaOptionContract.style``. This
-class's only job tied to that distinction is resolving the correct
-``pricing_model_key``, so a closed-form pricer (European) or a numerical
-one (American) can be registered without introducing a parallel class
-hierarchy.
+payoff formula is identical regardless of exercise style or underlying.
+What differs — exercise timing and the underlying's own dynamics (spot
+vs. forward) — is fully captured by ``VanillaOptionContract.style`` and
+``VanillaOptionContract.underlying_asset_class``. This class's only job
+tied to that distinction is resolving the correct ``pricing_model_key``
+from the pair of them, so the right pricer (closed-form or numerical,
+spot-based or forward-based) can be registered without introducing a
+parallel class hierarchy.
 """
 
 from __future__ import annotations
@@ -19,19 +21,24 @@ from derivslab.instruments.contracts import (
     DayCountConvention,
     ExerciseStyle,
     OptionType,
+    UnderlyingAssetClass,
     VanillaOptionContract,
 )
 
 if TYPE_CHECKING:
     from derivslab.calendars import TradingCalendar
 
-# Registry keys per exercise style. Each key is registered in the
-# PricingRouter against the pricer capable of handling that style —
-# closed-form for European, a numerical method (e.g. binomial tree) for
-# American.
-_PRICING_MODEL_KEYS: Final[dict[ExerciseStyle, str]] = {
-    ExerciseStyle.EUROPEAN: "bs_vanilla_european",
-    ExerciseStyle.AMERICAN: "binomial_vanilla_american",
+# Registry keys per (exercise style, underlying asset class). Style alone
+# is not enough: an equity option is priced off spot with a carry term,
+# while a future option is priced off the forward itself (Black-76), even
+# though both share the same payoff and the same ExerciseStyle. Each key
+# is registered in the PricingRouter against the pricer capable of
+# handling that combination.
+_PRICING_MODEL_KEYS: Final[dict[tuple[ExerciseStyle, UnderlyingAssetClass], str]] = {
+    (ExerciseStyle.EUROPEAN, UnderlyingAssetClass.EQUITY): "bs_vanilla_european_equity",
+    (ExerciseStyle.EUROPEAN, UnderlyingAssetClass.FUTURE): "black76_vanilla_european_future",
+    (ExerciseStyle.AMERICAN, UnderlyingAssetClass.EQUITY): "binomial_vanilla_american_equity",
+    (ExerciseStyle.AMERICAN, UnderlyingAssetClass.FUTURE): "binomial_vanilla_american_future",
 }
 
 # Denominator per calendar-day convention. BUS_252 is handled separately
@@ -72,11 +79,13 @@ class VanillaOption(Instrument):
     def pricing_model_key(self) -> str:
         """Return the registry key identifying the pricer to use.
 
-        Resolved from ``style`` alone: the payoff is style-agnostic, so
-        exercise timing is the only factor that determines which engine
-        can value this contract correctly.
+        Resolved from ``(style, underlying_asset_class)``: the payoff is
+        style-agnostic, but exercise timing alone does not determine
+        which engine can value this contract correctly — the underlying's
+        dynamics (spot vs. forward) do too.
         """
-        return _PRICING_MODEL_KEYS[self._contract.style]
+        contract = self._contract
+        return _PRICING_MODEL_KEYS[(contract.style, contract.underlying_asset_class)]
 
     def payoff(self, spots_at_expiry: Mapping[str, float]) -> float:
         """Compute the intrinsic value at the given underlying spot.

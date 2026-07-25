@@ -15,9 +15,12 @@ from derivslab.instruments.contracts import (
     Currency,
     DayCountConvention,
     EquityContract,
+    Exchange,
+    ExchangeSegment,
     ExerciseStyle,
     InstrumentContract,
     OptionType,
+    UnderlyingAssetClass,
     VanillaOptionContract,
 )
 from derivslab.instruments.equity import EquityInstrument
@@ -28,11 +31,14 @@ __all__ = [
     "DayCountConvention",
     "EquityContract",
     "EquityInstrument",
+    "Exchange",
+    "ExchangeSegment",
     "ExerciseStyle",
     "Instrument",
     "InstrumentContract",
     "OptionType",
     "PERPETUAL_EXPIRY",
+    "UnderlyingAssetClass",
     "VanillaOption",
     "VanillaOptionContract",
 ]

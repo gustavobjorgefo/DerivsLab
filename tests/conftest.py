@@ -14,6 +14,7 @@ from derivslab.instruments.contracts import (
     EquityContract,
     ExerciseStyle,
     OptionType,
+    UnderlyingAssetClass,
     VanillaOptionContract,
 )
 from derivslab.instruments.equity import EquityInstrument
@@ -48,6 +49,7 @@ def make_option_contract() -> Callable[..., VanillaOptionContract]:
             "currency": Currency.BRL,
             "ticker": "PETRA123",
             "underlying": "PETR4",
+            "underlying_asset_class": UnderlyingAssetClass.EQUITY,
             "option_type": OptionType.CALL,
             "style": ExerciseStyle.EUROPEAN,
             "strike": 35.0,
