@@ -284,11 +284,16 @@ class ProfitProRTDProvider(MarketDataProvider):
         Raises
         ------
         MarketDataError
-            If Excel is not running, ``WORKBOOK_NAME`` is not open, or
-            ``WORKSHEET_NAME`` does not exist in the workbook.
+            If no Excel instance is running, ``WORKBOOK_NAME`` is not open,
+            or ``WORKSHEET_NAME`` does not exist in the workbook.
         """
+        app = xw.apps.active
+        if app is None:
+            raise MarketDataError(
+                "No active Excel application found. Ensure Excel is running "
+                "before instantiating ProfitProRTDProvider."
+            )
         try:
-            app = xw.apps.active
             book: xw.Book = app.books[WORKBOOK_NAME]
             return book.sheets[WORKSHEET_NAME]
         except Exception as exc:
@@ -410,8 +415,8 @@ class ProfitProRTDProvider(MarketDataProvider):
         raw = self._sheet.range(f"B{_DATA_START_ROW}:G{end_row}").value
         # Normalise single-row result to 2-D
         if n == 1:
-            return [raw]  # type: ignore[list-item]
-        return raw  # type: ignore[return-value]
+            return [raw]
+        return raw  # type: ignore[no-any-return]
 
     def _clear_batch(self, n: int) -> None:
         """Clear the data rows for *n* symbols starting at ``_DATA_START_ROW``.
