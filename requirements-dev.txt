@@ -1,6 +1,7 @@
 pytest
 pytest-cov
 mypy
+pandas-stubs
 flake8
 black
 isort
