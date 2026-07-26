@@ -1,6 +1,7 @@
 numpy
 pandas
 pyarrow      # Parquet engine used by pandas in calendar_loader/calendar_ingest
+openpyxl     # Excel engine used by pandas to read/write the raw ANBIMA .xlsx file
 scipy        # statistics, optimization, and special functions
 matplotlib   # basic plotting
 statsmodels  # econometrics and advanced regressions
