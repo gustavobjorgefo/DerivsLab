@@ -8,14 +8,13 @@ from scipy.stats import norm
 from dataclasses import dataclass
 
 
-
 class BlackModel:
     """
     Black model (1976), used for pricing options on futures or forward contracts.
-    
+
     Typical usage:
         - Options on futures (commodities, rates, indices).
-    
+
     Parameters
     ----------
     option_type : 'call' or 'put'
@@ -33,7 +32,7 @@ class BlackModel:
         strike: float,
         maturity: float,
         volatility: float,
-        discount_factor: float
+        discount_factor: float,
     ) -> float:
         """
         Compute the option price using Black's model formula.
@@ -46,21 +45,21 @@ class BlackModel:
 
         if option_type == "call":
             return discount_factor * (forward * norm.cdf(d1) - strike * norm.cdf(d2))
-        
+
         elif option_type == "put":
             return discount_factor * (strike * norm.cdf(-d2) - forward * norm.cdf(-d1))
-        
+
         else:
             raise ValueError("Invalid option_type. Use 'call' or 'put'.")
-        
+
 
 class BlackScholesModel:
     """
     Black-Scholes model (1973), for European options on non-dividend-paying stocks.
-    
+
     Typical usage:
         - Equity options without dividends.
-    
+
     Parameters
     ----------
     option_type : 'call' or 'put'
@@ -83,31 +82,36 @@ class BlackScholesModel:
         Compute the option price using Black-Scholes formula.
         """
 
-        d1 = (math.log(self.spot / self.strike) + (self.risk_free_rate + 0.5 * self.volatility**2) * self.maturity) / (
-            self.volatility * math.sqrt(self.maturity)
-        )
+        d1 = (
+            math.log(self.spot / self.strike)
+            + (self.risk_free_rate + 0.5 * self.volatility**2) * self.maturity
+        ) / (self.volatility * math.sqrt(self.maturity))
 
         d2 = d1 - self.volatility * math.sqrt(self.maturity)
 
         if self.option_type == "call":
-            return self.spot * norm.cdf(d1) - self.strike * math.exp(-self.risk_free_rate * self.maturity) * norm.cdf(d2)
-        
+            return self.spot * norm.cdf(d1) - self.strike * math.exp(
+                -self.risk_free_rate * self.maturity
+            ) * norm.cdf(d2)
+
         elif self.option_type == "put":
-            return self.strike * math.exp(-self.risk_free_rate * self.maturity) * norm.cdf(-d2) - self.spot * norm.cdf(-d1)
-        
+            return self.strike * math.exp(-self.risk_free_rate * self.maturity) * norm.cdf(
+                -d2
+            ) - self.spot * norm.cdf(-d1)
+
         else:
             raise ValueError("Invalid option_type. Use 'call' or 'put'.")
-        
+
 
 @dataclass
 class BlackScholesMertonModel:
     """
     Black-Scholes-Merton model (1973), for European options on dividend-paying assets.
-    
+
     Typical usage:
         - Equity options with continuous dividend yield.
         - FX options (where dividend yield = foreign risk-free rate).
-    
+
     Parameters
     ----------
     option_type : 'call' or 'put'
@@ -132,23 +136,23 @@ class BlackScholesMertonModel:
         Compute the option price using Black-Scholes-Merton formula.
         """
 
-        d1 = (math.log(self.spot / self.strike) + (self.risk_free_rate - self.dividend_yield + 0.5 * self.volatility**2) * self.maturity) / (
-            self.volatility * math.sqrt(self.maturity)
-        )
+        d1 = (
+            math.log(self.spot / self.strike)
+            + (self.risk_free_rate - self.dividend_yield + 0.5 * self.volatility**2)
+            * self.maturity
+        ) / (self.volatility * math.sqrt(self.maturity))
 
         d2 = d1 - self.volatility * math.sqrt(self.maturity)
 
         if self.option_type == "call":
-            return self.spot * math.exp(-self.dividend_yield * self.maturity) * norm.cdf(d1) - self.strike * math.exp(
-                -self.risk_free_rate * self.maturity
-            ) * norm.cdf(d2)
-        
+            return self.spot * math.exp(-self.dividend_yield * self.maturity) * norm.cdf(
+                d1
+            ) - self.strike * math.exp(-self.risk_free_rate * self.maturity) * norm.cdf(d2)
+
         elif self.option_type == "put":
-            return self.strike * math.exp(-self.risk_free_rate * self.maturity) * norm.cdf(-d2) - self.spot * math.exp(
-                -self.dividend_yield * self.maturity
-            ) * norm.cdf(-d1)
-        
+            return self.strike * math.exp(-self.risk_free_rate * self.maturity) * norm.cdf(
+                -d2
+            ) - self.spot * math.exp(-self.dividend_yield * self.maturity) * norm.cdf(-d1)
+
         else:
             raise ValueError("Invalid option_type. Use 'call' or 'put'.")
-        
-

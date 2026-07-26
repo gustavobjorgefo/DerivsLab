@@ -37,6 +37,7 @@ UNAVAILABLE_REASON_UNKNOWN: Final[str] = "unavailable"
 # Normalised quote schema
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class Quote:
     """
@@ -103,6 +104,7 @@ class Quote:
 # ---------------------------------------------------------------------------
 # Snapshot — coherent collection of quotes from a single collection call
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class MarketSnapshot:
@@ -198,6 +200,7 @@ class MarketSnapshot:
 # Exception hierarchy
 # ---------------------------------------------------------------------------
 
+
 class MarketDataError(Exception):
     """Base exception for all market data errors."""
 
@@ -257,18 +260,16 @@ class PartialSnapshotError(MarketDataError):
     ) -> None:
         self.snapshot: MarketSnapshot = snapshot
         self.unavailable: dict[str, str] = unavailable
-        failed = ", ".join(
-            f"'{s}' ({r})" for s, r in unavailable.items()
-        )
+        failed = ", ".join(f"'{s}' ({r})" for s, r in unavailable.items())
         super().__init__(
-            f"Partial snapshot: {len(snapshot)} quote(s) obtained; "
-            f"failed symbols — {failed}"
+            f"Partial snapshot: {len(snapshot)} quote(s) obtained; " f"failed symbols — {failed}"
         )
 
 
 # ---------------------------------------------------------------------------
 # Abstract provider interface
 # ---------------------------------------------------------------------------
+
 
 class MarketDataProvider(ABC):
     """

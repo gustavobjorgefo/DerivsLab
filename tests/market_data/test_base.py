@@ -54,6 +54,7 @@ from derivslab.market_data.base import (
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def make_timestamp() -> datetime:
     return datetime(2025, 1, 15, 10, 30, 0, tzinfo=timezone.utc)
 
@@ -91,6 +92,7 @@ def make_snapshot(symbols: list[str] | None = None) -> MarketSnapshot:
 # Stub providers — used to test ABC and get_mid
 # ---------------------------------------------------------------------------
 
+
 class AlwaysSuccessProvider(MarketDataProvider):
     """Returns a hardcoded quote for any symbol."""
 
@@ -115,6 +117,7 @@ class AlwaysFailProvider(MarketDataProvider):
 # ---------------------------------------------------------------------------
 # Quote tests
 # ---------------------------------------------------------------------------
+
 
 class TestQuote:
 
@@ -171,6 +174,7 @@ class TestQuote:
 # ---------------------------------------------------------------------------
 # MarketSnapshot tests
 # ---------------------------------------------------------------------------
+
 
 class TestMarketSnapshot:
 
@@ -239,6 +243,7 @@ class TestMarketSnapshot:
 # QuoteUnavailableError tests
 # ---------------------------------------------------------------------------
 
+
 class TestQuoteUnavailableError:
 
     def test_symbol_attribute(self) -> None:
@@ -273,6 +278,7 @@ class TestQuoteUnavailableError:
 # ---------------------------------------------------------------------------
 # PartialSnapshotError tests
 # ---------------------------------------------------------------------------
+
 
 class TestPartialSnapshotError:
 
@@ -324,6 +330,7 @@ class TestPartialSnapshotError:
 # MarketDataProvider (ABC + concrete helpers) tests
 # ---------------------------------------------------------------------------
 
+
 class TestMarketDataProviderABC:
 
     def test_cannot_instantiate_abc_directly(self) -> None:
@@ -334,6 +341,7 @@ class TestMarketDataProviderABC:
         class IncompleteProvider(MarketDataProvider):
             def get_quote(self, symbol: str) -> Quote:
                 return make_quote(symbol=symbol)
+
             # get_quotes not implemented
 
         with pytest.raises(TypeError):
@@ -361,6 +369,7 @@ class TestGetMid:
 # ---------------------------------------------------------------------------
 # Consumer pattern — snapshot partial handling
 # ---------------------------------------------------------------------------
+
 
 class TestConsumerPartialSnapshotPattern:
     """

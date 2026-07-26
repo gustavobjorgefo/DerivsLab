@@ -3,6 +3,7 @@
 import numpy as np
 from scipy.stats import norm
 
+
 def delta_bs(option_type: str, S: float, K: float, T: float, r: float, sigma: float) -> float:
     d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
     if option_type == "call":

@@ -96,6 +96,7 @@ from derivslab.market_data.providers.profitpro_rtd import (
 # Fake xlwings sheet
 # ---------------------------------------------------------------------------
 
+
 class _FakeRange:
     """Stub for xlwings Range — captures writes, returns configured reads."""
 
@@ -177,6 +178,7 @@ class FakeSheet:
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 def _make_equity(ticker: str = "PETR4") -> EquityContract:
     return EquityContract(
         instrument_id=ticker,
@@ -234,11 +236,9 @@ def fake_sheet() -> FakeSheet:
 def patch_xlwings(fake_sheet: FakeSheet):
     """Patch the xw module used by profitpro_rtd so no Excel is opened."""
     with patch("derivslab.market_data.providers.profitpro_rtd.xw") as mock_xw:
-        (
-            mock_xw.apps.active
-            .books.__getitem__.return_value
-            .sheets.__getitem__.return_value
-        ) = fake_sheet
+        (mock_xw.apps.active.books.__getitem__.return_value.sheets.__getitem__.return_value) = (
+            fake_sheet
+        )
         yield mock_xw
 
 
@@ -252,13 +252,16 @@ def registry() -> InstrumentRegistry:
 
 
 @pytest.fixture()
-def provider(fake_sheet: FakeSheet, registry: InstrumentRegistry, patch_xlwings: Any) -> ProfitProRTDProvider:
+def provider(
+    fake_sheet: FakeSheet, registry: InstrumentRegistry, patch_xlwings: Any
+) -> ProfitProRTDProvider:
     return ProfitProRTDProvider(registry=registry, settle_time=0.0)
 
 
 # ---------------------------------------------------------------------------
 # Static helpers
 # ---------------------------------------------------------------------------
+
 
 class TestIsRtdError:
 
@@ -329,15 +332,14 @@ class TestRtdFormula:
 # _resolve_rtd_name
 # ---------------------------------------------------------------------------
 
+
 class TestResolveRtdName:
 
     def test_bovespa_gets_b0_suffix(self, provider: ProfitProRTDProvider) -> None:
         assert provider._resolve_rtd_name("PETRA201") == "PETRA201_B_0"
 
     def test_bmf_gets_f0_suffix(self, fake_sheet: FakeSheet, patch_xlwings: Any) -> None:
-        registry = _make_registry(
-            _make_option("DI1F26", segment=ExchangeSegment.BMF)
-        )
+        registry = _make_registry(_make_option("DI1F26", segment=ExchangeSegment.BMF))
         p = ProfitProRTDProvider(registry=registry, settle_time=0.0)
         assert p._resolve_rtd_name("DI1F26") == "DI1F26_F_0"
 
@@ -368,6 +370,7 @@ class TestResolveRtdName:
 # ---------------------------------------------------------------------------
 # _row_to_quote
 # ---------------------------------------------------------------------------
+
 
 class TestRowToQuote:
 
@@ -419,6 +422,7 @@ class TestRowToQuote:
 # __init__ / connection
 # ---------------------------------------------------------------------------
 
+
 class TestProviderInit:
 
     def test_writes_header_on_init(self, fake_sheet: FakeSheet, patch_xlwings: Any) -> None:
@@ -437,6 +441,7 @@ class TestProviderInit:
 # ---------------------------------------------------------------------------
 # get_quote
 # ---------------------------------------------------------------------------
+
 
 class TestGetQuote:
 
@@ -468,6 +473,7 @@ class TestGetQuote:
 # get_quotes
 # ---------------------------------------------------------------------------
 
+
 class TestGetQuotes:
 
     def test_all_succeed_returns_complete_snapshot(
@@ -490,10 +496,12 @@ class TestGetQuotes:
     def test_rtd_bid_error_goes_to_unavailable(
         self, provider: ProfitProRTDProvider, fake_sheet: FakeSheet
     ) -> None:
-        fake_sheet.push_read_response([
-            _raw_row(bid=10.0, ask=10.2),
-            _raw_row(bid="#N/A", ask=9.2),
-        ])
+        fake_sheet.push_read_response(
+            [
+                _raw_row(bid=10.0, ask=10.2),
+                _raw_row(bid="#N/A", ask=9.2),
+            ]
+        )
         with pytest.raises(PartialSnapshotError) as exc_info:
             provider.get_quotes(["PETRA201", "PETRM201"])
         assert "PETRM201" in exc_info.value.unavailable

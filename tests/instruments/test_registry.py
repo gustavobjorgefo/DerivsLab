@@ -39,6 +39,7 @@ from derivslab.instruments.registry import InstrumentRegistry
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def make_equity(ticker: str = "PETR4") -> EquityContract:
     return EquityContract(
         instrument_id=ticker,
@@ -72,6 +73,7 @@ def make_option(
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestInstrumentRegistryAdd:
 
@@ -107,7 +109,11 @@ class TestInstrumentRegistryLoad:
 
     def test_load_registers_all_contracts(self) -> None:
         registry = InstrumentRegistry()
-        contracts = [make_equity("PETR4"), make_option("PETRA201"), make_option("PETRM201", strike=20.13)]
+        contracts = [
+            make_equity("PETR4"),
+            make_option("PETRA201"),
+            make_option("PETRM201", strike=20.13),
+        ]
         registry.load(contracts)
         assert registry.get("PETR4") is not None
         assert registry.get("PETRA201") is not None

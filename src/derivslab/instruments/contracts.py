@@ -212,9 +212,7 @@ class InstrumentContract:
                 f"for {self.instrument_id}."
             )
         if self.exchange_segment is not None and self.exchange is None:
-            raise ValueError(
-                f"exchange_segment set without exchange for {self.instrument_id}."
-            )
+            raise ValueError(f"exchange_segment set without exchange for {self.instrument_id}.")
 
 
 @dataclass(frozen=True, kw_only=True)

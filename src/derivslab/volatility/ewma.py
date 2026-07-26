@@ -10,7 +10,7 @@ class EWMAVolatilityEstimator(VolatilityModel):
         self.trading_days = trading_days
 
     def compute(self, returns: np.ndarray) -> float:
-        weights = np.array([(1 - self.lam) * (self.lam ** i) for i in range(len(returns))][::-1])
+        weights = np.array([(1 - self.lam) * (self.lam**i) for i in range(len(returns))][::-1])
         weights /= weights.sum()
         variance = np.sum(weights * returns**2)
         return np.sqrt(variance * self.trading_days)

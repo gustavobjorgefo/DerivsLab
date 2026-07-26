@@ -76,9 +76,7 @@ class TestPricingModelKeyResolution:
         underlying_asset_class: UnderlyingAssetClass,
         expected_key: str,
     ) -> None:
-        contract = make_option_contract(
-            style=style, underlying_asset_class=underlying_asset_class
-        )
+        contract = make_option_contract(style=style, underlying_asset_class=underlying_asset_class)
         option = VanillaOption(contract)
         assert option.pricing_model_key == expected_key
 

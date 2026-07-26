@@ -3,6 +3,7 @@
 from .base import VolatilityModel
 import numpy as np
 
+
 class HistoricalVolatilityEstimator(VolatilityModel):
     def __init__(self, trading_days: int = 252):
         self.trading_days = trading_days

@@ -85,7 +85,13 @@ DEFAULT_BATCH_SIZE: Final[int] = 50
 
 _DATA_START_ROW: Final[int] = 2
 _HEADER: Final[list[str]] = [
-    "symbol", "last", "bid", "ask", "bid_size", "ask_size", "volume",
+    "symbol",
+    "last",
+    "bid",
+    "ask",
+    "bid_size",
+    "ask_size",
+    "volume",
 ]
 
 # RTD attribute names in the order they occupy columns B → G.
@@ -106,6 +112,7 @@ _RTD_SUFFIX: Final[dict[ExchangeSegment, str]] = {
 # ---------------------------------------------------------------------------
 # Provider
 # ---------------------------------------------------------------------------
+
 
 class ProfitProRTDProvider(MarketDataProvider):
     """Market data provider backed by ProfitPro's RTD server via Excel.
@@ -235,8 +242,8 @@ class ProfitProRTDProvider(MarketDataProvider):
 
         # --- process in batches
         for offset in range(0, len(valid_symbols), self._batch_size):
-            batch_symbols = valid_symbols[offset: offset + self._batch_size]
-            batch_rtd_names = rtd_names[offset: offset + self._batch_size]
+            batch_symbols = valid_symbols[offset : offset + self._batch_size]
+            batch_rtd_names = rtd_names[offset : offset + self._batch_size]
             n = len(batch_symbols)
 
             raw_rows: list[list[object]] | None = None
@@ -318,9 +325,7 @@ class ProfitProRTDProvider(MarketDataProvider):
         """
         contract = self._registry.get(symbol)
         if contract is None:
-            raise QuoteUnavailableError(
-                symbol, "symbol not found in InstrumentRegistry"
-            )
+            raise QuoteUnavailableError(symbol, "symbol not found in InstrumentRegistry")
 
         segment = contract.exchange_segment
         if segment is None:
@@ -375,9 +380,7 @@ class ProfitProRTDProvider(MarketDataProvider):
         end_row = _DATA_START_ROW + n - 1
 
         # Column A — symbol labels for readability and audit
-        self._sheet.range(
-            f"A{_DATA_START_ROW}:A{end_row}"
-        ).value = [[s] for s in symbols]
+        self._sheet.range(f"A{_DATA_START_ROW}:A{end_row}").value = [[s] for s in symbols]
 
         # Columns B–G — one RTD formula per attribute per symbol
         formulas: list[list[str]] = [
@@ -500,8 +503,7 @@ class ProfitProRTDProvider(MarketDataProvider):
         if self._is_rtd_error(bid_raw) or self._is_rtd_error(ask_raw):
             raise QuoteUnavailableError(
                 symbol,
-                f"bid or ask returned an RTD error "
-                f"(bid={bid_raw!r}, ask={ask_raw!r})",
+                f"bid or ask returned an RTD error " f"(bid={bid_raw!r}, ask={ask_raw!r})",
             )
 
         return Quote(

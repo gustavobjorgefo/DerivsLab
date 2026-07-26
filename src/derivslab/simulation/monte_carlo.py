@@ -26,16 +26,15 @@ BarrierType = Literal["up-and-in", "up-and-out", "down-and-in", "down-and-out"]
 
 
 def _gbm_simulate_paths(
-        S0: float,
-        mu: float,
-        sigma: float,
-        T: float,
-        n_steps: int,
-        n_paths: int,
-        rng: np.random.Generator,
-        antithetic: bool = False,
-    ) -> np.ndarray:
-    
+    S0: float,
+    mu: float,
+    sigma: float,
+    T: float,
+    n_steps: int,
+    n_paths: int,
+    rng: np.random.Generator,
+    antithetic: bool = False,
+) -> np.ndarray:
     """
     Vectorized simulation of GBM log-prices.
 
@@ -68,15 +67,17 @@ def _vanilla_payoff(spot_T: np.ndarray, strike: float, option_type: OptionType) 
 
     if option_type == "call":
         return np.maximum(spot_T - strike, 0.0)
-    
+
     elif option_type == "put":
         return np.maximum(strike - spot_T, 0.0)
-    
+
     else:
         raise ValueError("option_type must be 'call' or 'put'")
-    
 
-def _check_barrier_discrete(paths: np.ndarray, barrier: float, barrier_type: BarrierType) -> np.ndarray:
+
+def _check_barrier_discrete(
+    paths: np.ndarray, barrier: float, barrier_type: BarrierType
+) -> np.ndarray:
     """
     For each path, determine whether barrier was hit under discrete monitoring.
 
@@ -100,13 +101,12 @@ def _check_barrier_discrete(paths: np.ndarray, barrier: float, barrier_type: Bar
 
 
 def _brownian_bridge_no_cross_prob_log(
-        log_s_i: np.ndarray,
-        log_s_j: np.ndarray,
-        log_H: float,
-        sigma: float,
-        dt: float,
-    ) -> np.ndarray:
-
+    log_s_i: np.ndarray,
+    log_s_j: np.ndarray,
+    log_H: float,
+    sigma: float,
+    dt: float,
+) -> np.ndarray:
     """
     Given two log-price endpoints log_s_i and log_s_j over interval dt, compute probability that
     the Brownian bridge does NOT cross log_H (i.e., survival prob). Uses reflection principle:
@@ -126,17 +126,16 @@ def _brownian_bridge_no_cross_prob_log(
         expterm = np.exp(exponent)
         p_no_cross = 1.0 - expterm
         # clamp
-        p_no_cross = np.clip(p_no_cross, 0.0, 1.0)     
+        p_no_cross = np.clip(p_no_cross, 0.0, 1.0)
     return p_no_cross
 
 
 def _apply_brownian_bridge_correction(
-        paths: np.ndarray,
-        barrier: float,
-        barrier_type: BarrierType,
-        sigma: float,
-    ) -> np.ndarray:
-
+    paths: np.ndarray,
+    barrier: float,
+    barrier_type: BarrierType,
+    sigma: float,
+) -> np.ndarray:
     """
     Approximate continuous monitoring by applying Brownian-bridge survival correction
     across each interval. Returns boolean array 'alive' per path: True if not knocked-out.
@@ -152,7 +151,9 @@ def _apply_brownian_bridge_correction(
 
     n_paths, n_steps_plus = paths.shape
     n_steps = n_steps_plus - 1
-    dt_list = np.full(n_steps, 1.0 / n_steps)  # in normalized time; caller should ensure T accounted for sigma*sqrt(dt)
+    dt_list = np.full(
+        n_steps, 1.0 / n_steps
+    )  # in normalized time; caller should ensure T accounted for sigma*sqrt(dt)
 
     # BUT we need actual dt in years; we cannot infer T here. We'll assume caller uses paths built with correct dt scaling.
     # To allow dt, we require that paths were simulated with fixed dt and that sigma is annualized.
@@ -207,7 +208,6 @@ def _apply_brownian_bridge_correction(
 
 
 class MonteCarloGBMPricer:
-
     """
     Monte Carlo pricer under Geometric Brownian Motion.
 
@@ -231,15 +231,14 @@ class MonteCarloGBMPricer:
         self.mu = r if mu is None else mu
 
     def simulate_paths(
-            self,
-            T: float,
-            n_steps: int,
-            n_paths: int,
-            seed: Optional[int] = None,
-            antithetic: bool = False,
-            chunk_size: Optional[int] = 100_000,
-        ) -> Tuple[np.ndarray, int]:
-
+        self,
+        T: float,
+        n_steps: int,
+        n_paths: int,
+        seed: Optional[int] = None,
+        antithetic: bool = False,
+        chunk_size: Optional[int] = 100_000,
+    ) -> Tuple[np.ndarray, int]:
         """
         Simulate GBM paths and return an array of shape (n_paths_total, n_steps+1).
 
@@ -251,7 +250,9 @@ class MonteCarloGBMPricer:
         # allocate container by generating chunk by chunk and stacking — but to avoid huge memory we may return generator
         # For convenience here we simulate all if it fits; else user should call price_* with chunking.
         if chunk_size is None or n_paths <= chunk_size:
-            paths = _gbm_simulate_paths(self.S0, self.mu, self.sigma, T, n_steps, n_paths, rng, antithetic=antithetic)
+            paths = _gbm_simulate_paths(
+                self.S0, self.mu, self.sigma, T, n_steps, n_paths, rng, antithetic=antithetic
+            )
             return paths, (n_paths * (2 if antithetic else 1))
         else:
             # chunking: generate chunks and concatenate (beware memory)
@@ -260,7 +261,14 @@ class MonteCarloGBMPricer:
             while paths_simulated < n_paths:
                 this_chunk = min(chunk_size, n_paths - paths_simulated)
                 chunk_paths = _gbm_simulate_paths(
-                    self.S0, self.mu, self.sigma, T, n_steps, this_chunk, rng, antithetic=antithetic
+                    self.S0,
+                    self.mu,
+                    self.sigma,
+                    T,
+                    n_steps,
+                    this_chunk,
+                    rng,
+                    antithetic=antithetic,
                 )
                 chunks.append(chunk_paths)
                 paths_simulated += this_chunk
@@ -268,18 +276,17 @@ class MonteCarloGBMPricer:
             return paths, paths.shape[0]
 
     def price_vanilla(
-            self,
-            strike: float,
-            T: float,
-            option_type: OptionType,
-            n_steps: int,
-            n_paths: int,
-            seed: Optional[int] = None,
-            antithetic: bool = False,
-            control_variate_bs: Optional[Callable[[], float]] = None,
-            chunk_size: Optional[int] = 100_000,
-        ) -> Tuple[float, float]:
-
+        self,
+        strike: float,
+        T: float,
+        option_type: OptionType,
+        n_steps: int,
+        n_paths: int,
+        seed: Optional[int] = None,
+        antithetic: bool = False,
+        control_variate_bs: Optional[Callable[[], float]] = None,
+        chunk_size: Optional[int] = 100_000,
+    ) -> Tuple[float, float]:
         """
         Price a European vanilla option by Monte Carlo.
 
@@ -288,7 +295,9 @@ class MonteCarloGBMPricer:
         uses control variate to reduce variance.
         """
 
-        paths, actual_paths = self.simulate_paths(T, n_steps, n_paths, seed, antithetic, chunk_size)
+        paths, actual_paths = self.simulate_paths(
+            T, n_steps, n_paths, seed, antithetic, chunk_size
+        )
         payoff_T = _vanilla_payoff(paths[:, -1], strike, option_type)
         disc = _discount_factor(self.r, T)
         mc_est = disc * np.mean(payoff_T)
@@ -307,20 +316,19 @@ class MonteCarloGBMPricer:
         return float(mc_est), float(stderr)
 
     def price_barrier(
-            self,
-            strike: float,
-            barrier: float,
-            barrier_type: BarrierType,
-            T: float,
-            option_type: OptionType,
-            n_steps: int,
-            n_paths: int,
-            seed: Optional[int] = None,
-            antithetic: bool = False,
-            use_bb_correction: bool = True,
-            chunk_size: Optional[int] = 100_000,
-        ) -> Tuple[float, float]:
-
+        self,
+        strike: float,
+        barrier: float,
+        barrier_type: BarrierType,
+        T: float,
+        option_type: OptionType,
+        n_steps: int,
+        n_paths: int,
+        seed: Optional[int] = None,
+        antithetic: bool = False,
+        use_bb_correction: bool = True,
+        chunk_size: Optional[int] = 100_000,
+    ) -> Tuple[float, float]:
         """
         Price barrier option (European) by Monte Carlo.
 
@@ -329,8 +337,10 @@ class MonteCarloGBMPricer:
 
         Returns (price, stderr).
         """
-        
-        paths, actual_paths = self.simulate_paths(T, n_steps, n_paths, seed, antithetic, chunk_size)
+
+        paths, actual_paths = self.simulate_paths(
+            T, n_steps, n_paths, seed, antithetic, chunk_size
+        )
         disc = _discount_factor(self.r, T)
         # discrete hit detection
         hit = _check_barrier_discrete(paths, barrier, barrier_type)  # bool (hit or not)
@@ -338,7 +348,9 @@ class MonteCarloGBMPricer:
         # For 'out' options: if hit -> payoff = 0 ; survival = ~not hit (for discrete)
         if use_bb_correction:
             # compute survival probability per path in [0,1] using Brownian-bridge
-            survival_prob = _apply_brownian_bridge_correction(paths, barrier, barrier_type, self.sigma)
+            survival_prob = _apply_brownian_bridge_correction(
+                paths, barrier, barrier_type, self.sigma
+            )
         else:
             # survival as deterministic 0/1 under discrete monitoring
             if barrier_type.endswith("out"):

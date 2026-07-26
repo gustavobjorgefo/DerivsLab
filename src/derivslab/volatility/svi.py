@@ -19,7 +19,7 @@ class SVIModel(VolatilityModel):
         """Compute total implied variance w(k)"""
         p = params or self.params
         a, b, rho, m, sigma = p.values()
-        return a + b * (rho * (k - m) + np.sqrt((k - m)**2 + sigma**2))
+        return a + b * (rho * (k - m) + np.sqrt((k - m) ** 2 + sigma**2))
 
     def implied_vol(self, k: np.ndarray, params=None):
         """Return implied vol smile σ_imp(k)"""
@@ -32,16 +32,16 @@ class SVIModel(VolatilityModel):
         strikes, forwards, maturities, market_ivs -> arrays of same length
         """
         k = np.log(strikes / forwards)
-        w_mkt = (market_ivs ** 2) * maturities
+        w_mkt = (market_ivs**2) * maturities
 
         def objective(x):
             p = {"a": x[0], "b": x[1], "rho": x[2], "m": x[3], "sigma": x[4]}
             w_model = self.total_variance(k, p)
-            return np.mean((w_model - w_mkt)**2)
+            return np.mean((w_model - w_mkt) ** 2)
 
         x0 = list(self.params.values())
         bounds = [(1e-6, None), (1e-6, 2.0), (-0.999, 0.999), (-1.0, 1.0), (1e-4, 2.0)]
-        res = minimize(objective, x0, bounds=bounds, method='L-BFGS-B')
+        res = minimize(objective, x0, bounds=bounds, method="L-BFGS-B")
 
         if res.success:
             self.params = dict(zip(self.params.keys(), res.x))

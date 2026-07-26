@@ -39,6 +39,7 @@ def load_pickle(path):
     except pickle.UnpicklingError as e:
         raise pickle.UnpicklingError(f"Error unpickling file: {path}") from e
 
+
 def save_pickle(path, obj):
     """
     Save an object to a pickle file.
@@ -53,15 +54,15 @@ def save_pickle(path, obj):
     with open(path, "wb") as fp:
         pickle.dump(obj, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
+
 def get_history(
     ticker: str,
     period_start: str | pd.Timestamp,
     period_end: str | pd.Timestamp,
-    granularity: Literal['1m', '5m', '15m', '30m', '1h', '1d', '1wk', '1mo'] = '1d',
+    granularity: Literal["1m", "5m", "15m", "30m", "1h", "1d", "1wk", "1mo"] = "1d",
     tries: int = 0,
-    max_tries: int = 5
+    max_tries: int = 5,
 ) -> pd.DataFrame:
-    
     """
     Downloads historical price data for a given ticker from Yahoo Finance.
 
@@ -85,7 +86,7 @@ def get_history(
             end=period_end,
             interval=granularity,
             auto_adjust=True,
-            progress=False
+            progress=False,
         )
     except Exception as err:
         # Retry recursively in case of transient network or API issues
@@ -93,10 +94,10 @@ def get_history(
             return get_history(ticker, period_start, period_end, granularity, tries + 1, max_tries)
         print(f"[ERROR] Failed to download data for {ticker}: {err}")
         return pd.DataFrame()
-    
+
     if df.empty:
         return pd.DataFrame()
-    
+
     # Handle MultiIndex columns (some intervals in Yahoo Finance return MultiIndex)
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
@@ -104,26 +105,28 @@ def get_history(
     # Clean up and standardize column names
     df = (
         df.reset_index()
-          .rename(columns={
-              'Date': 'datetime',
-              'Open': 'open',
-              'High': 'high',
-              'Low': 'low',
-              'Close': 'close',
-              'Volume': 'volume'
-          })
-          .loc[:, ['datetime', 'open', 'high', 'low', 'close', 'volume']]
-          .set_index('datetime')
+        .rename(
+            columns={
+                "Date": "datetime",
+                "Open": "open",
+                "High": "high",
+                "Low": "low",
+                "Close": "close",
+                "Volume": "volume",
+            }
+        )
+        .loc[:, ["datetime", "open", "high", "low", "close", "volume"]]
+        .set_index("datetime")
     )
     return df
+
 
 def get_histories(
     tickers: Sequence[str],
     period_start: str | pd.Timestamp,
     period_end: str | pd.Timestamp,
-    granularity: Literal["1m", "5m", "15m", "30m", "1h", "1d", "1wk", "1mo"] = "1d"
+    granularity: Literal["1m", "5m", "15m", "30m", "1h", "1d", "1wk", "1mo"] = "1d",
 ) -> tuple[list[str], list[pd.DataFrame]]:
-
     """
     Retrieve historical OHLCV data for multiple tickers.
 
@@ -141,8 +144,7 @@ def get_histories(
 
     # Collect data for each ticker
     results: list[tuple[str, pd.DataFrame]] = [
-        (ticker, get_history(ticker, period_start, period_end, granularity))
-        for ticker in tickers
+        (ticker, get_history(ticker, period_start, period_end, granularity)) for ticker in tickers
     ]
 
     # Filter out tickers with no data
@@ -150,19 +152,19 @@ def get_histories(
 
     if not valid_results:
         return [], []
-    
+
     # Unpack valid results into separate lists
     valid_tickers, dfs = zip(*valid_results)
 
     return list(valid_tickers), list(dfs)
 
+
 def get_ticker_dfs(
     tickers: Sequence[str],
     period_start: str | pd.Timestamp,
     period_end: str | pd.Timestamp,
-    cache_path: str | Path = None # Path("utils/cache/dataset.obj") 
+    cache_path: str | Path = None,  # Path("utils/cache/dataset.obj")
 ) -> tuple[list[str], dict[str, pd.DataFrame]]:
-    
     """
     Retrieve historical DataFrames for multiple tickers, using local cache when available.
 
@@ -200,19 +202,27 @@ def get_ticker_dfs(
     return list(tickers), ticker_dfs
 
 
-if __name__ == '__main__':
-    
-    test_path = Path(__file__).parent / "cache" / "test_dataset.obj"
-    tickers = ["AAPL", "MSFT", "SPY", "QQQ", "VALE3.SA", "PETR4.SA", "BOVA11.SA", "7203.T", "6758.T", "1321.T"]
+if __name__ == "__main__":
 
-    period_start = '2020-01-01'
-    period_end = '2025-09-30'
+    test_path = Path(__file__).parent / "cache" / "test_dataset.obj"
+    tickers = [
+        "AAPL",
+        "MSFT",
+        "SPY",
+        "QQQ",
+        "VALE3.SA",
+        "PETR4.SA",
+        "BOVA11.SA",
+        "7203.T",
+        "6758.T",
+        "1321.T",
+    ]
+
+    period_start = "2020-01-01"
+    period_end = "2025-09-30"
 
     tickers, tickers_df = get_ticker_dfs(
-        tickers=tickers,
-        period_start=period_start,
-        period_end=period_end,
-        cache_path=test_path
+        tickers=tickers, period_start=period_start, period_end=period_end, cache_path=test_path
     )
 
     for ticker in tickers:

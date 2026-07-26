@@ -102,10 +102,10 @@ class Instrument(ABC):
         ...
 
     # --- debugging -----------------------------------------------------
- 
+
     def __repr__(self) -> str:
         """Return a debug-friendly representation delegating to the contract.
- 
+
         Every concrete ``Instrument`` already carries a self-describing,
         dataclass-generated ``contract`` — reusing it here avoids every
         subclass having to redefine ``__repr__`` on its own.

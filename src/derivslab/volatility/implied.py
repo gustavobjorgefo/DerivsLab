@@ -10,7 +10,9 @@ class ImpliedVolatilityEstimator(VolatilityModel):
         self.tol = tol
         self.max_iter = max_iter
 
-    def compute(self, market_price: float, model_func: Callable[[float], float], initial_vol: float = 0.2) -> float:
+    def compute(
+        self, market_price: float, model_func: Callable[[float], float], initial_vol: float = 0.2
+    ) -> float:
         sigma = initial_vol
         for _ in range(self.max_iter):
             price = model_func(sigma)
