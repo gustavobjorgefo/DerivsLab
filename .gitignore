@@ -32,3 +32,9 @@ src/derivslab/utils/cache/
 references/vba/*.xlsm
 references/repos/*
 !references/repos/README.md
+
+# 
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
