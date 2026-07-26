@@ -15,8 +15,10 @@ Dependencies: numpy, scipy
 """
 
 from __future__ import annotations
+
 import math
-from typing import Literal, Optional, Callable, Tuple
+from typing import Callable, Literal, Optional, Tuple
+
 import numpy as np
 from scipy.stats import norm
 

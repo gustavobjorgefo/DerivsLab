@@ -1,7 +1,8 @@
 # src/derivslab/volatility/ewma.py
 
-from .base import VolatilityModel
 import numpy as np
+
+from .base import VolatilityModel
 
 
 class EWMAVolatilityEstimator(VolatilityModel):

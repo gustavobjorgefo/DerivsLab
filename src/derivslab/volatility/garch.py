@@ -1,8 +1,10 @@
 # src/derivslab/volatility/garch.py
 
-import numpy as np
 from typing import Optional
+
+import numpy as np
 from scipy.optimize import minimize
+
 from .base import VolatilityModel
 
 

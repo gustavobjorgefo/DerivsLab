@@ -1,8 +1,8 @@
-pytest
+pytest==8.4.2
 pytest-cov
-mypy
+mypy==2.3.0
 pandas-stubs
-flake8
+flake8==7.3.0
 black==25.9.0
-isort
+isort==6.1.0
 pre-commit

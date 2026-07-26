@@ -1,7 +1,8 @@
 # src/derivslab/volatility/historical.py
 
-from .base import VolatilityModel
 import numpy as np
+
+from .base import VolatilityModel
 
 
 class HistoricalVolatilityEstimator(VolatilityModel):

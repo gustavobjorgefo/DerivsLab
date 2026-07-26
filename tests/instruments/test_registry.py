@@ -34,7 +34,6 @@ from derivslab.instruments.contracts import (
 )
 from derivslab.instruments.registry import InstrumentRegistry
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

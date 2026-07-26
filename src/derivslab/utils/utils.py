@@ -1,12 +1,14 @@
 # src/derivslab/utils/utils.py
 
 from __future__ import annotations
+
 import pickle
-import yfinance
-import numpy as np
-import pandas as pd
 from pathlib import Path
 from typing import Literal, Optional, Sequence
+
+import numpy as np
+import pandas as pd
+import yfinance
 
 
 def load_pickle(path):

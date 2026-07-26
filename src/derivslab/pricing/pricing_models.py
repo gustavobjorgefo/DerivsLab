@@ -1,11 +1,11 @@
 # src/derivslab/pricing/pricing_models.py
 
 import math
-import numpy as np
-
-from typing import Literal
-from scipy.stats import norm
 from dataclasses import dataclass
+from typing import Literal
+
+import numpy as np
+from scipy.stats import norm
 
 
 class BlackModel:

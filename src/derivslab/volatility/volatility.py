@@ -1,9 +1,10 @@
 # src/derivslab/volatility/volatility.py
 
+from dataclasses import dataclass
+from typing import Callable, Literal, Union
+
 import numpy as np
 import pandas as pd
-from dataclasses import dataclass
-from typing import Union, Literal, Callable
 from scipy.stats import norm
 
 

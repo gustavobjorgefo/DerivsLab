@@ -35,20 +35,20 @@ MarketDataProvider (via FakeProvider stub)
 
 from __future__ import annotations
 
-import pytest
 from dataclasses import FrozenInstanceError
 from datetime import datetime, timezone
 
+import pytest
+
 from derivslab.market_data.base import (
+    UNAVAILABLE_REASON_UNKNOWN,
+    MarketDataError,
     MarketDataProvider,
     MarketSnapshot,
-    MarketDataError,
     PartialSnapshotError,
     Quote,
     QuoteUnavailableError,
-    UNAVAILABLE_REASON_UNKNOWN,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers

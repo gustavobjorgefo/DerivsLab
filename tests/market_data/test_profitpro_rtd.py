@@ -86,11 +86,10 @@ from derivslab.market_data.base import (
     QuoteUnavailableError,
 )
 from derivslab.market_data.providers.profitpro_rtd import (
+    _RTD_ATTRIBUTES,
     RTD_SERVER,
     ProfitProRTDProvider,
-    _RTD_ATTRIBUTES,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fake xlwings sheet
