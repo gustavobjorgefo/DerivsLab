@@ -63,7 +63,7 @@ from __future__ import annotations
 from collections import deque
 from datetime import date, datetime, timezone
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -86,7 +86,6 @@ from derivslab.market_data.base import (
     QuoteUnavailableError,
 )
 from derivslab.market_data.providers.profitpro_rtd import (
-    _RTD_ATTRIBUTES,
     RTD_SERVER,
     ProfitProRTDProvider,
 )

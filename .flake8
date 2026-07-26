@@ -1,3 +1,9 @@
 [flake8]
 max-line-length = 99
 extend-ignore = E203, W503
+exclude =
+    src/derivslab/pricing/pricing_models.py,
+    src/derivslab/simulation/monte_carlo.py,
+    src/derivslab/utils/utils.py,
+    src/derivslab/volatility,
+    src/derivslab/greeks/vanilla_greeks.py

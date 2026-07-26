@@ -19,11 +19,8 @@ from __future__ import annotations
 
 from datetime import date
 
-import pytest
-
 from derivslab.instruments.contracts import (
     Currency,
-    DayCountConvention,
     EquityContract,
     Exchange,
     ExchangeSegment,
