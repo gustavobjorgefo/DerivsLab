@@ -3,6 +3,6 @@ pytest-cov
 mypy
 pandas-stubs
 flake8
-black
+black==25.9.0
 isort
 pre-commit
