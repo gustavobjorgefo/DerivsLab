@@ -9,9 +9,11 @@ from typing import Callable
 import pytest
 
 from derivslab.instruments.contracts import (
+    DI_FUTURE_SETTLEMENT_VALUE,
     PERPETUAL_EXPIRY,
     Currency,
     DayCountConvention,
+    DIFutureContract,
     EquityContract,
     Exchange,
     ExchangeSegment,
@@ -166,3 +168,60 @@ class TestVanillaOptionContract:
             underlying_asset_class=UnderlyingAssetClass.FUTURE,
         )
         assert contract.underlying_asset_class is UnderlyingAssetClass.FUTURE
+
+
+class TestDIFutureContract:
+    """Tests specific to DIFutureContract."""
+
+    def test_valid_contract_holds_given_fields(self, di_future_contract: DIFutureContract) -> None:
+        assert di_future_contract.ticker == "DI1F27"
+        assert di_future_contract.expiry == date(2027, 7, 13)
+
+    def test_contract_size_defaults_to_one(self, di_future_contract: DIFutureContract) -> None:
+        assert di_future_contract.contract_size == 1
+
+    def test_tick_size_defaults_to_b3_finer_tier(self, di_future_contract: DIFutureContract) -> None:
+        assert di_future_contract.tick_size == 0.001
+
+    def test_point_value_defaults_to_one(self, di_future_contract: DIFutureContract) -> None:
+        assert di_future_contract.point_value == 1.0
+
+    def test_day_count_convention_defaults_to_bus_252(
+        self, di_future_contract: DIFutureContract
+    ) -> None:
+        assert di_future_contract.day_count_convention is DayCountConvention.BUS_252
+
+    def test_point_value_can_be_overridden(self) -> None:
+        contract = DIFutureContract(
+            instrument_id="DI1F27",
+            currency=Currency.BRL,
+            ticker="DI1F27",
+            expiry=date(2027, 7, 13),
+            point_value=0.5,
+        )
+        assert contract.point_value == 0.5
+
+    @pytest.mark.parametrize("point_value", [0.0, -1.0, -100.0])
+    def test_non_positive_point_value_raises(self, point_value: float) -> None:
+        with pytest.raises(ValueError, match="point_value must be strictly positive"):
+            DIFutureContract(
+                instrument_id="DI1F27",
+                currency=Currency.BRL,
+                ticker="DI1F27",
+                expiry=date(2027, 7, 13),
+                point_value=point_value,
+            )
+
+    def test_inherits_base_contract_size_validation(self) -> None:
+        with pytest.raises(ValueError, match="contract_size must be strictly positive"):
+            DIFutureContract(
+                instrument_id="DI1F27",
+                currency=Currency.BRL,
+                ticker="DI1F27",
+                expiry=date(2027, 7, 13),
+                contract_size=0,
+            )
+
+    def test_contract_is_frozen(self, di_future_contract: DIFutureContract) -> None:
+        with pytest.raises(FrozenInstanceError):
+            di_future_contract.ticker = "DI1F28"  # type: ignore[misc]

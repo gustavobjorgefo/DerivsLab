@@ -301,3 +301,63 @@ class VanillaOptionContract(InstrumentContract):
                 f"strike must be strictly positive, got {self.strike} "
                 f"for {self.instrument_id}."
             )
+
+
+DI_FUTURE_SETTLEMENT_VALUE: Final[float] = 100_000.0
+
+@dataclass(frozen=True, kw_only=True)
+class DIFutureContract(InstrumentContract):
+    """Reference data for a B3 DI1 futures contract (one-day interbank rate).
+
+    DI1 is a rate future: quoted as an annualized interest rate on a
+    BUS_252 basis rather than a price, its mark-to-market value is
+    expressed in PU (Preço Unitário) points, converging to
+    ``DI_FUTURE_SETTLEMENT_VALUE`` at expiry regardless of the negotiated
+    or realized rate. The negotiated rate is market data, not reference
+    data — it belongs in ``MarketState``, the same way a vanilla option's
+    contract never stores its underlying's spot price.
+
+    Unlike ``VanillaOptionContract``, this contract has no
+    ``underlying_asset_class``: that field describes what an *option's*
+    underlying is. A DI1 future is itself a valid ``underlying`` for a
+    future-style vanilla option (``UnderlyingAssetClass.FUTURE``) — it is
+    not written on anything else.
+
+    ``contract_size`` is overridden to ``1``: DI1 has no notion of "units
+    of an underlying" per contract — the monetary multiplier that matters
+    is ``point_value`` instead. ``tick_size`` is overridden to B3's finer
+    tier (``0.001``); B3 actually steps it to ``0.005`` past three months
+    to expiry, which DerivsLab simplifies away since quoting granularity
+    has no bearing on pricing.
+
+    Parameters
+    ----------
+    ticker : str
+        B3 contract code (month letter + two-digit year), e.g. ``"DI1F26"``.
+    expiry : date
+        Contractual settlement date — the first trading session of the
+        contract's maturity month, already resolved against B3's calendar
+        before this contract is constructed.
+    point_value : float
+        Value in BRL of one PU point (``M`` in B3's contract spec),
+        established by B3 and subject to periodic revision.
+
+    Raises
+    ------
+    ValueError
+        If ``point_value`` is not strictly positive.
+    """
+
+    ticker: str
+    expiry: date
+    contract_size: int = 1
+    tick_size: float = 0.001
+    point_value: float = 1.0
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if self.point_value <= 0:
+            raise ValueError(
+                f"point_value must be strictly positive, got {self.point_value} "
+                f"for {self.instrument_id}."
+            )

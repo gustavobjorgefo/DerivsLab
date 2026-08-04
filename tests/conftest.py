@@ -11,6 +11,7 @@ from derivslab.calendars import TradingCalendar
 from derivslab.instruments.contracts import (
     Currency,
     DayCountConvention,
+    DIFutureContract,
     EquityContract,
     ExerciseStyle,
     OptionType,
@@ -18,6 +19,7 @@ from derivslab.instruments.contracts import (
     VanillaOptionContract,
 )
 from derivslab.instruments.equity import EquityInstrument
+from derivslab.instruments.future import DIFuture
 from derivslab.instruments.vanilla import VanillaOption
 
 
@@ -86,3 +88,20 @@ def american_put(make_option_contract: Callable[..., VanillaOptionContract]) -> 
 def trading_calendar() -> TradingCalendar:
     """A test calendar with a single holiday (2026-07-16, a Thursday)."""
     return TradingCalendar(holidays=frozenset({date(2026, 7, 16)}), name="test-calendar")
+
+
+@pytest.fixture
+def di_future_contract() -> DIFutureContract:
+    """A minimal, valid DI1 futures contract, expiring one year after ``valuation_date``."""
+    return DIFutureContract(
+        instrument_id="DI1F27",
+        currency=Currency.BRL,
+        ticker="DI1F27",
+        expiry=date(2027, 7, 13),
+    )
+
+
+@pytest.fixture
+def di_future(di_future_contract: DIFutureContract) -> DIFuture:
+    """A DIFuture wrapping ``di_future_contract``."""
+    return DIFuture(di_future_contract)
