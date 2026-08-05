@@ -305,6 +305,7 @@ class VanillaOptionContract(InstrumentContract):
 
 DI_FUTURE_SETTLEMENT_VALUE: Final[float] = 100_000.0
 
+
 @dataclass(frozen=True, kw_only=True)
 class DIFutureContract(InstrumentContract):
     """Reference data for a B3 DI1 futures contract (one-day interbank rate).

@@ -9,7 +9,6 @@ from typing import Callable
 import pytest
 
 from derivslab.instruments.contracts import (
-    DI_FUTURE_SETTLEMENT_VALUE,
     PERPETUAL_EXPIRY,
     Currency,
     DayCountConvention,
@@ -180,7 +179,9 @@ class TestDIFutureContract:
     def test_contract_size_defaults_to_one(self, di_future_contract: DIFutureContract) -> None:
         assert di_future_contract.contract_size == 1
 
-    def test_tick_size_defaults_to_b3_finer_tier(self, di_future_contract: DIFutureContract) -> None:
+    def test_tick_size_defaults_to_b3_finer_tier(
+        self, di_future_contract: DIFutureContract
+    ) -> None:
         assert di_future_contract.tick_size == 0.001
 
     def test_point_value_defaults_to_one(self, di_future_contract: DIFutureContract) -> None:

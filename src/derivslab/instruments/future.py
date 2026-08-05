@@ -1,4 +1,3 @@
-
 """DI1 futures instrument (B3 one-day interbank rate future).
 
 Unlike an option, a DI1 future has no path-dependent terminal payoff: its
